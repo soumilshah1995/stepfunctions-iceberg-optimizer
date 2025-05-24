@@ -1,0 +1,32 @@
+{
+  "Comment": "Execute multiple Athena queries in parallel with dynamic output locations and database context (fully generic).",
+  "StartAt": "ParallelAthenaQueries",
+  "States": {
+    "ParallelAthenaQueries": {
+      "Type": "Map",
+      "ItemsPath": "$.jobs",
+      "MaxConcurrency": 2,
+      "Iterator": {
+        "StartAt": "Athena StartQueryExecution",
+        "States": {
+          "Athena StartQueryExecution": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::athena:startQueryExecution",
+            "Parameters": {
+              "QueryString.$": "$.query",
+              "WorkGroup": "primary",
+              "QueryExecutionContext": {
+                "Database.$": "$.database"
+              },
+              "ResultConfiguration": {
+                "OutputLocation.$": "$.output_location"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "End": true
+    }
+  }
+}
